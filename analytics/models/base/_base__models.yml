@@ -1,0 +1,349 @@
+version: 2
+models:
+- name: base_operation__budget
+  description: One row per valid budget record.
+  columns:
+  - name: budget_id
+    data_tests:
+    - unique
+    description: The business identifier for the related budget.
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+  - name: budget_month
+    description: The calculated budget month for the represented grain.
+  - name: account_code
+    description: '{{ doc(''account_code'') }}'
+  - name: account_name
+    description: The calculated account name for the represented grain.
+  - name: account_type
+    description: '{{ doc(''account_type'') }}'
+  - name: budget_amount
+    description: The calculated budget amount for the represented grain.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+- name: base_operation__charge
+  description: One row per source-quality-approved charge record; charge identifiers are not assumed unique because the source can contain duplicate rows.
+  columns:
+  - name: charge_id
+    description: The business identifier for the related charge.
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+  - name: unit_id
+    description: '{{ doc(''unit_id'') }}'
+  - name: lease_id
+    description: '{{ doc(''lease_id'') }}'
+  - name: tenant_id
+    description: '{{ doc(''tenant_id'') }}'
+  - name: charge_date
+    description: The calendar date associated with charge.
+  - name: due_date
+    description: The calendar date associated with due.
+  - name: charge_type
+    description: The business charge type associated with the represented grain.
+  - name: charge_amount
+    description: The calculated charge amount for the represented grain.
+  - name: approved_credit_amount
+    description: The calculated approved credit amount for the represented grain.
+  - name: posted_at
+    description: The timestamp associated with posted.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+- name: base_operation__gl_entry
+  description: One row per valid general-ledger entry.
+  columns:
+  - name: gl_entry_id
+    data_tests:
+    - unique
+    description: The business identifier for the related gl entry.
+  - name: journal_id
+    description: '{{ doc(''journal_id'') }}'
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+  - name: posting_date
+    description: The calendar date associated with posting.
+  - name: account_code
+    description: '{{ doc(''account_code'') }}'
+  - name: account_name
+    description: The calculated account name for the represented grain.
+  - name: account_type
+    description: '{{ doc(''account_type'') }}'
+  - name: debit_amount
+    description: The calculated debit amount for the represented grain.
+  - name: credit_amount
+    description: The calculated credit amount for the represented grain.
+  - name: entry_description
+    description: The business entry description associated with the represented grain.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+- name: base_operation__hud_fmr
+  description: One row per market-bedroom-fiscal-year fair-market-rent benchmark.
+  columns:
+  - name: market_id
+    description: '{{ doc(''market_id'') }}'
+  - name: county_name
+    description: The calculated county name for the represented grain.
+  - name: state_code
+    description: The business state code associated with the represented grain.
+  - name: bedrooms
+    description: The business bedrooms associated with the represented grain.
+  - name: fiscal_year
+    description: The calculated fiscal year for the represented grain.
+  - name: fmr_amount
+    description: The calculated fmr amount for the represented grain.
+  - name: benchmark_label
+    description: The business benchmark label associated with the represented grain.
+  - name: benchmark_source_url
+    description: The business benchmark source url associated with the represented grain.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+  data_tests:
+  - dbt_utils.unique_combination_of_columns:
+      arguments:
+        combination_of_columns:
+        - market_id
+        - bedrooms
+        - fiscal_year
+
+- name: base_operation__lease
+  description: One row per valid lease record.
+  columns:
+  - name: lease_id
+    data_tests:
+    - unique
+    description: '{{ doc(''lease_id'') }}'
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+  - name: unit_id
+    description: '{{ doc(''unit_id'') }}'
+  - name: tenant_id
+    description: '{{ doc(''tenant_id'') }}'
+  - name: lease_start_date
+    description: The calendar date associated with lease start.
+  - name: lease_end_date
+    description: The calendar date associated with lease end.
+  - name: move_in_date
+    description: The calendar date associated with move in.
+  - name: move_out_date
+    description: The calendar date associated with move out.
+  - name: signed_date
+    description: The calendar date associated with signed.
+  - name: monthly_rent
+    description: The calculated monthly rent for the represented grain.
+  - name: renewal_of_lease_id
+    description: The business identifier for the related renewal of lease.
+  - name: lease_outcome
+    description: The business lease outcome associated with the represented grain.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+- name: base_operation__payment
+  description: One row per valid payment record.
+  columns:
+  - name: payment_id
+    data_tests:
+    - unique
+    description: The business identifier for the related payment.
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+  - name: tenant_id
+    description: '{{ doc(''tenant_id'') }}'
+  - name: payment_date
+    description: The calendar date associated with payment.
+  - name: payment_amount
+    description: The calculated payment amount for the represented grain.
+  - name: payment_status
+    description: The calculated payment status for the represented grain.
+  - name: posted_at
+    description: The timestamp associated with posted.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+- name: base_operation__payment_allocation
+  description: One row per valid payment-allocation record.
+  columns:
+  - name: payment_allocation_id
+    data_tests:
+    - unique
+    description: The business identifier for the related payment allocation.
+  - name: payment_id
+    description: The business identifier for the related payment.
+  - name: charge_id
+    description: The business identifier for the related charge.
+  - name: allocated_amount
+    description: The calculated allocated amount for the represented grain.
+  - name: allocation_date
+    description: The calendar date associated with allocation.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+- name: base_operation__property
+  description: One row per valid property record.
+  columns:
+  - name: property_id
+    data_tests:
+    - unique
+    description: '{{ doc(''property_id'') }}'
+  - name: property_name
+    description: '{{ doc(''property_name'') }}'
+  - name: market_id
+    description: '{{ doc(''market_id'') }}'
+  - name: property_class
+    description: '{{ doc(''property_class'') }}'
+  - name: stated_unit_count
+    description: The calculated stated unit count for the represented grain.
+  - name: active_from
+    description: The business active from associated with the represented grain.
+  - name: active_to
+    description: The business active to associated with the represented grain.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+- name: base_operation__tenant
+  description: One row per valid tenant record.
+  columns:
+  - name: tenant_id
+    data_tests:
+    - unique
+    description: '{{ doc(''tenant_id'') }}'
+  - name: tenant_name
+    description: The business tenant name associated with the represented grain.
+  - name: created_date
+    description: The calendar date associated with created.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+- name: base_operation__unit
+  description: One row per valid unit record.
+  columns:
+  - name: unit_id
+    data_tests:
+    - unique
+    description: '{{ doc(''unit_id'') }}'
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+  - name: unit_number
+    description: The calculated unit number for the represented grain.
+  - name: is_rentable
+    description: Whether the record meets the rentable condition.
+  - name: active_from
+    description: The business active from associated with the represented grain.
+  - name: active_to
+    description: The business active to associated with the represented grain.
+  - name: market_rent
+    description: The calculated market rent for the represented grain.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+- name: base_operation__vendor
+  description: One row per valid vendor record.
+  columns:
+  - name: vendor_id
+    data_tests:
+    - unique
+    description: '{{ doc(''vendor_id'') }}'
+  - name: vendor_name
+    description: The business vendor name associated with the represented grain.
+  - name: active_from
+    description: The business active from associated with the represented grain.
+  - name: active_to
+    description: The business active to associated with the represented grain.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+- name: base_operation__work_order
+  description: One row per valid work-order record.
+  columns:
+  - name: work_order_id
+    data_tests:
+    - unique
+    description: '{{ doc(''work_order_id'') }}'
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+  - name: unit_id
+    description: '{{ doc(''unit_id'') }}'
+  - name: vendor_id
+    description: '{{ doc(''vendor_id'') }}'
+  - name: opened_at
+    description: The timestamp associated with opened.
+  - name: first_response_at
+    description: The timestamp associated with first response.
+  - name: closed_at
+    description: The timestamp associated with closed.
+  - name: work_order_status
+    description: The business work order status associated with the represented grain.
+  - name: priority
+    description: '{{ doc(''priority'') }}'
+  - name: category
+    description: '{{ doc(''category'') }}'
+  - name: maintenance_type
+    description: The business maintenance type associated with the represented grain.
+  - name: labor_cost
+    description: The calculated labor cost for the represented grain.
+  - name: material_cost
+    description: The calculated material cost for the represented grain.
+  - name: vendor_cost
+    description: The calculated vendor cost for the represented grain.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+- name: base_operation__work_order_status
+  description: One row per valid work-order status event.
+  columns:
+  - name: status_event_id
+    data_tests:
+    - unique
+    description: The business identifier for the related status event.
+  - name: work_order_id
+    description: '{{ doc(''work_order_id'') }}'
+  - name: work_order_status
+    description: The business work order status associated with the represented grain.
+  - name: event_at
+    description: The timestamp associated with event.
+  - name: event_sequence
+    description: The business event sequence associated with the represented grain.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'

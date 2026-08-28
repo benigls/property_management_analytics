@@ -1,0 +1,424 @@
+version: 2
+models:
+- name: rpt_leasing_action__queue
+  description: One row per reporting record. Transparent lease-expiration and tenant-collection
+    actions with evidence.
+  columns:
+  - name: action_id
+    description: The business identifier for the related action.
+    data_tests:
+    - not_null
+    - unique
+  - name: action_type
+    description: The business action type associated with the represented grain.
+    data_tests:
+    - accepted_values:
+        arguments:
+          values:
+          - lease_expiration
+          - tenant_delinquency
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+  - name: property_name
+    description: '{{ doc(''property_name'') }}'
+  - name: unit_id
+    description: '{{ doc(''unit_id'') }}'
+  - name: unit_number
+    description: The calculated unit number for the represented grain.
+  - name: lease_id
+    description: '{{ doc(''lease_id'') }}'
+  - name: tenant_id
+    description: '{{ doc(''tenant_id'') }}'
+  - name: tenant_name
+    description: The business tenant name associated with the represented grain.
+  - name: action_date
+    description: The calendar date associated with action.
+  - name: financial_exposure
+    description: The calculated financial exposure for the represented grain.
+  - name: age_or_days_to_event
+    description: The calculated age or days to event for the represented grain.
+  - name: priority_score
+    description: The business priority score associated with the represented grain.
+  - name: priority_tier
+    description: The business priority tier associated with the represented grain.
+    data_tests:
+    - accepted_values:
+        arguments:
+          values:
+          - high
+          - medium
+          - standard
+  - name: evidence
+    description: The business evidence associated with the represented grain.
+    data_tests:
+    - not_null
+  - name: recommended_action
+    description: The business recommended action associated with the represented grain.
+    data_tests:
+    - not_null
+  - name: analytics_as_of_date
+    description: '{{ doc(''analytics_as_of_date'') }}'
+  data_tests:
+  - dbt_utils.expression_is_true:
+      arguments:
+        expression: financial_exposure > 0 and priority_score >= financial_exposure
+- name: rpt_leasing_delinquency__current
+  description: One row per reporting record. Positive outstanding rent balance by tenant,
+    lease, and charge with aging.
+  columns:
+  - name: charge_id
+    description: The business identifier for the related charge.
+    data_tests:
+    - not_null
+    - unique
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+  - name: property_name
+    description: '{{ doc(''property_name'') }}'
+  - name: market_id
+    description: '{{ doc(''market_id'') }}'
+  - name: property_class
+    description: '{{ doc(''property_class'') }}'
+  - name: unit_id
+    description: '{{ doc(''unit_id'') }}'
+  - name: unit_number
+    description: The calculated unit number for the represented grain.
+  - name: lease_id
+    description: '{{ doc(''lease_id'') }}'
+  - name: tenant_id
+    description: '{{ doc(''tenant_id'') }}'
+  - name: tenant_name
+    description: The business tenant name associated with the represented grain.
+  - name: due_date
+    description: The calendar date associated with due.
+  - name: net_charge_amount
+    description: The calculated net charge amount for the represented grain.
+  - name: allocated_payment_amount
+    description: The calculated allocated payment amount for the represented grain.
+  - name: outstanding_balance
+    description: The calculated outstanding balance for the represented grain.
+  - name: days_past_due
+    description: The calculated days past due for the represented grain.
+  - name: aging_bucket
+    description: The business aging bucket associated with the represented grain.
+    data_tests:
+    - accepted_values:
+        arguments:
+          values:
+          - current
+          - 1-30
+          - 31-60
+          - 61-90
+          - 90+
+  - name: analytics_as_of_date
+    description: '{{ doc(''analytics_as_of_date'') }}'
+- name: rpt_leasing_expiration__exposure
+  description: One row per reporting record. Twelve-month lease expiration horizon with signed
+    mitigation evidence.
+  columns:
+  - name: lease_id
+    description: '{{ doc(''lease_id'') }}'
+    data_tests:
+    - not_null
+    - unique
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+  - name: property_name
+    description: '{{ doc(''property_name'') }}'
+  - name: market_id
+    description: '{{ doc(''market_id'') }}'
+  - name: property_class
+    description: '{{ doc(''property_class'') }}'
+  - name: unit_id
+    description: '{{ doc(''unit_id'') }}'
+  - name: unit_number
+    description: The calculated unit number for the represented grain.
+  - name: tenant_id
+    description: '{{ doc(''tenant_id'') }}'
+  - name: tenant_name
+    description: The business tenant name associated with the represented grain.
+  - name: expiration_date
+    description: The calendar date associated with expiration.
+  - name: expiration_month
+    description: The calculated expiration month for the represented grain.
+  - name: days_to_expiration
+    description: The calculated days to expiration for the represented grain.
+  - name: contractual_monthly_rent
+    description: The calculated contractual monthly rent for the represented grain.
+  - name: mitigation_status
+    description: The business mitigation status associated with the represented grain.
+    data_tests:
+    - accepted_values:
+        arguments:
+          values:
+          - unmitigated
+          - signed_renewal
+          - signed_replacement
+  - name: successor_lease_id
+    description: The business identifier for the related successor lease.
+  - name: successor_start_date
+    description: The calendar date associated with successor start.
+  - name: successor_signed_date
+    description: The calendar date associated with successor signed.
+  - name: is_mitigated
+    description: Whether the record meets the mitigated condition.
+  - name: unmitigated_rent_exposure
+    description: The calculated unmitigated rent exposure for the represented grain.
+  - name: analytics_as_of_date
+    description: '{{ doc(''analytics_as_of_date'') }}'
+  data_tests:
+  - dbt_utils.expression_is_true:
+      arguments:
+        expression: (is_mitigated and successor_lease_id is not null and unmitigated_rent_exposure
+          = 0) or (not is_mitigated and successor_lease_id is null and unmitigated_rent_exposure
+          = contractual_monthly_rent)
+- name: rpt_leasing_occupancy__scenario
+  description: One row per reporting record. Signed committed occupancy and a separately labeled
+    estimate using historical renewal and vacancy behavior for unresolved expirations.
+  columns:
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+    data_tests:
+    - not_null
+  - name: property_name
+    description: '{{ doc(''property_name'') }}'
+  - name: market_id
+    description: '{{ doc(''market_id'') }}'
+  - name: property_class
+    description: '{{ doc(''property_class'') }}'
+  - name: forecast_month_end
+    description: The calculated forecast month end for the represented grain.
+    data_tests:
+    - not_null
+  - name: active_rentable_units
+    description: '{{ doc(''active_rentable_units'') }}'
+  - name: committed_occupied_units
+    description: The business committed occupied units associated with the represented grain.
+  - name: committed_occupancy_pct
+    description: The calculated committed occupancy pct for the represented grain.
+  - name: unresolved_expired_units
+    description: The business unresolved expired units associated with the represented grain.
+  - name: expected_occupied_from_unresolved
+    description: The business expected occupied from unresolved associated with the represented
+      grain.
+  - name: base_scenario_occupied_units
+    description: The business base scenario occupied units associated with the represented
+      grain.
+  - name: base_scenario_occupancy_pct
+    description: The calculated base scenario occupancy pct for the represented grain.
+  - name: base_scenario_method
+    description: The business base scenario method associated with the represented grain.
+    data_tests:
+    - not_null
+  - name: analytics_as_of_date
+    description: '{{ doc(''analytics_as_of_date'') }}'
+  data_tests:
+  - dbt_utils.unique_combination_of_columns:
+      arguments:
+        combination_of_columns:
+        - property_id
+        - forecast_month_end
+  - dbt_utils.expression_is_true:
+      arguments:
+        expression: committed_occupied_units <= active_rentable_units and base_scenario_occupied_units
+          <= active_rentable_units and base_scenario_occupied_units >= committed_occupied_units
+  - dbt_utils.accepted_range:
+      arguments:
+        column_name: committed_occupancy_pct
+        min_value: 0
+        max_value: 100
+  - dbt_utils.accepted_range:
+      arguments:
+        column_name: base_scenario_occupancy_pct
+        min_value: 0
+        max_value: 100
+- name: rpt_leasing_property__daily_occupancy
+  description: One row per reporting record. Leasing-owned physical occupancy at property-date
+    grain using active rentable units.
+  columns:
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+    data_tests:
+    - not_null
+  - name: property_name
+    description: '{{ doc(''property_name'') }}'
+  - name: market_id
+    description: '{{ doc(''market_id'') }}'
+  - name: property_class
+    description: '{{ doc(''property_class'') }}'
+  - name: occupancy_date
+    description: The calendar date associated with occupancy.
+    data_tests:
+    - not_null
+  - name: active_rentable_units
+    description: '{{ doc(''active_rentable_units'') }}'
+  - name: occupied_units
+    description: The business occupied units associated with the represented grain.
+  - name: vacant_units
+    description: The business vacant units associated with the represented grain.
+  - name: physical_occupancy_pct
+    description: The calculated physical occupancy pct for the represented grain.
+    data_tests:
+    - not_null
+  - name: analytics_as_of_date
+    description: '{{ doc(''analytics_as_of_date'') }}'
+  data_tests:
+  - dbt_utils.unique_combination_of_columns:
+      arguments:
+        combination_of_columns:
+        - property_id
+        - occupancy_date
+  - dbt_utils.expression_is_true:
+      arguments:
+        expression: occupied_units <= active_rentable_units
+  - dbt_utils.expression_is_true:
+      arguments:
+        expression: vacant_units = active_rentable_units - occupied_units
+  - dbt_utils.accepted_range:
+      arguments:
+        column_name: physical_occupancy_pct
+        min_value: 0
+        max_value: 100
+- name: rpt_leasing_property__monthly_occupancy
+  description: One row per reporting record. Month-end projection of the leasing-owned daily
+    physical occupancy mart.
+  columns:
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+    data_tests:
+    - not_null
+  - name: property_name
+    description: '{{ doc(''property_name'') }}'
+  - name: market_id
+    description: '{{ doc(''market_id'') }}'
+  - name: property_class
+    description: '{{ doc(''property_class'') }}'
+  - name: month_end_date
+    description: '{{ doc(''month_end_date'') }}'
+    data_tests:
+    - not_null
+  - name: active_rentable_units
+    description: '{{ doc(''active_rentable_units'') }}'
+  - name: occupied_units
+    description: The business occupied units associated with the represented grain.
+  - name: vacant_units
+    description: The business vacant units associated with the represented grain.
+  - name: physical_occupancy_pct
+    description: The calculated physical occupancy pct for the represented grain.
+  - name: analytics_as_of_date
+    description: '{{ doc(''analytics_as_of_date'') }}'
+  data_tests:
+  - dbt_utils.unique_combination_of_columns:
+      arguments:
+        combination_of_columns:
+        - property_id
+        - month_end_date
+
+- name: rpt_leasing_renewal__turnover
+  description: One row per reporting record. Completed lease expirations with explicit outcome
+    and successor evidence.
+  columns:
+  - name: lease_id
+    description: '{{ doc(''lease_id'') }}'
+    data_tests:
+    - not_null
+    - unique
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+  - name: property_name
+    description: '{{ doc(''property_name'') }}'
+  - name: market_id
+    description: '{{ doc(''market_id'') }}'
+  - name: property_class
+    description: '{{ doc(''property_class'') }}'
+  - name: unit_id
+    description: '{{ doc(''unit_id'') }}'
+  - name: tenant_id
+    description: '{{ doc(''tenant_id'') }}'
+  - name: lease_end_date
+    description: The calendar date associated with lease end.
+  - name: expiration_month
+    description: The calculated expiration month for the represented grain.
+  - name: monthly_rent
+    description: The calculated monthly rent for the represented grain.
+  - name: lease_outcome
+    description: The business lease outcome associated with the represented grain.
+    data_tests:
+    - accepted_values:
+        arguments:
+          values:
+          - renewed
+          - turned_over
+  - name: successor_lease_id
+    description: The business identifier for the related successor lease.
+  - name: successor_start_date
+    description: The calendar date associated with successor start.
+  - name: successor_tenant_id
+    description: The business identifier for the related successor tenant.
+  - name: has_explicit_successor
+    description: Whether the record has explicit successor.
+  - name: is_renewal
+    description: Whether the record meets the renewal condition.
+  - name: is_turnover
+    description: Whether the record meets the turnover condition.
+  - name: analytics_as_of_date
+    description: '{{ doc(''analytics_as_of_date'') }}'
+- name: rpt_leasing_trust__status
+  description: One row per reporting record. Leasing-domain reconciliation, documented issue,
+    and source-cutoff checks.
+  columns:
+  - name: check_id
+    description: '{{ doc(''check_id'') }}'
+    data_tests:
+    - not_null
+    - unique
+  - name: check_label
+    description: The business check label associated with the represented grain.
+  - name: check_status
+    description: '{{ doc(''check_status'') }}'
+    data_tests:
+    - accepted_values:
+        arguments:
+          values:
+          - pass
+          - warning
+          - fail
+  - name: check_value
+    description: The business check value associated with the represented grain.
+  - name: detail
+    description: The business detail associated with the represented grain.
+  - name: analytics_as_of_date
+    description: '{{ doc(''analytics_as_of_date'') }}'
+- name: rpt_leasing_vacancy__episode
+  description: One row per reporting record. Completed vacancy episodes after turnover and
+    before the next occupied lease.
+  columns:
+  - name: vacancy_episode_id
+    description: The business identifier for the related vacancy episode.
+    data_tests:
+    - not_null
+    - unique
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+  - name: property_name
+    description: '{{ doc(''property_name'') }}'
+  - name: market_id
+    description: '{{ doc(''market_id'') }}'
+  - name: property_class
+    description: '{{ doc(''property_class'') }}'
+  - name: unit_id
+    description: '{{ doc(''unit_id'') }}'
+  - name: prior_lease_id
+    description: The business identifier for the related prior lease.
+  - name: next_lease_id
+    description: The business identifier for the related next lease.
+  - name: vacancy_start_date
+    description: The calendar date associated with vacancy start.
+  - name: vacancy_end_date
+    description: The calendar date associated with vacancy end.
+  - name: vacancy_days
+    description: The calculated vacancy days for the represented grain.
+    data_tests:
+    - not_null
+  - name: analytics_as_of_date
+    description: '{{ doc(''analytics_as_of_date'') }}'

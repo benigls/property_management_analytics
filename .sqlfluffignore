@@ -1,0 +1,5 @@
+# SQLFluff 3.5 cannot parse these valid DuckDB interval and alias patterns. dbt compile/build
+# remain authoritative until the parser supports them.
+analytics/models/marts/operations/rpt_operations_backlog__monthly.sql
+analytics/models/marts/operations/rpt_operations_issue__recurring.sql
+

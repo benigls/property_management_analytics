@@ -1,0 +1,481 @@
+version: 2
+models:
+- name: int_budget__conformed
+  description: One row per conformed record. One property-month-account budget record per
+    source row. Materialized explicitly as a table for downstream reuse.
+  columns:
+  - name: budget_id
+    description: The business identifier for the related budget.
+    data_tests:
+    - not_null
+    - unique
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+    data_tests:
+    - relationships:
+        arguments:
+          to: ref('dim_property__current')
+          field: property_id
+  - name: budget_month
+    description: The calculated budget month for the represented grain.
+  - name: account_code
+    description: '{{ doc(''account_code'') }}'
+  - name: account_name
+    description: The calculated account name for the represented grain.
+  - name: account_type
+    description: '{{ doc(''account_type'') }}'
+  - name: budget_amount
+    description: The calculated budget amount for the represented grain.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+- name: int_charge__conformed
+  description: One row per conformed record. One valid posted charge per row. Net charge is
+    gross charge less approved credit; defensive write-off handling is present although the
+    v1 generator emits none. Materialized explicitly as a table for downstream reuse.
+  columns:
+  - name: charge_id
+    description: The business identifier for the related charge.
+    data_tests:
+    - not_null
+    - unique
+    - dbt_utils.at_least_one
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+  - name: unit_id
+    description: '{{ doc(''unit_id'') }}'
+  - name: lease_id
+    description: '{{ doc(''lease_id'') }}'
+    data_tests:
+    - relationships:
+        arguments:
+          to: ref('int_lease__conformed')
+          field: lease_id
+  - name: tenant_id
+    description: '{{ doc(''tenant_id'') }}'
+  - name: charge_date
+    description: The calendar date associated with charge.
+  - name: due_date
+    description: The calendar date associated with due.
+  - name: charge_type
+    description: The business charge type associated with the represented grain.
+  - name: charge_amount
+    description: The calculated charge amount for the represented grain.
+  - name: approved_credit_amount
+    description: The calculated approved credit amount for the represented grain.
+  - name: writeoff_amount
+    description: The calculated writeoff amount for the represented grain.
+  - name: net_charge_amount
+    description: The calculated net charge amount for the represented grain.
+  - name: posted_at
+    description: The timestamp associated with posted.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+- name: int_gl_entry__conformed
+  description: One row per conformed record. One valid general-ledger line preserving journal
+    and source transaction traceability. Materialized explicitly as a table for downstream
+    financial models.
+  columns:
+  - name: gl_entry_id
+    description: The business identifier for the related gl entry.
+    data_tests:
+    - not_null
+    - unique
+    - dbt_utils.at_least_one
+  - name: journal_id
+    description: '{{ doc(''journal_id'') }}'
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+    data_tests:
+    - relationships:
+        arguments:
+          to: ref('dim_property__current')
+          field: property_id
+  - name: posting_date
+    description: The calendar date associated with posting.
+  - name: account_code
+    description: '{{ doc(''account_code'') }}'
+  - name: account_name
+    description: The calculated account name for the represented grain.
+  - name: account_type
+    description: '{{ doc(''account_type'') }}'
+  - name: debit_amount
+    description: The calculated debit amount for the represented grain.
+  - name: credit_amount
+    description: The calculated credit amount for the represented grain.
+  - name: entry_description
+    description: The business entry description associated with the represented grain.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+- name: int_lease__conformed
+  description: One row per conformed record. One valid lease per row with conformed property,
+    unit, and tenant references. Materialized explicitly as a table because several downstream
+    leasing and financial models reuse it.
+  columns:
+  - name: lease_id
+    description: '{{ doc(''lease_id'') }}'
+    data_tests:
+    - not_null
+    - unique
+    - dbt_utils.at_least_one
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+    data_tests:
+    - relationships:
+        arguments:
+          to: ref('dim_property__current')
+          field: property_id
+  - name: unit_id
+    description: '{{ doc(''unit_id'') }}'
+    data_tests:
+    - relationships:
+        arguments:
+          to: ref('dim_unit__current')
+          field: unit_id
+  - name: tenant_id
+    description: '{{ doc(''tenant_id'') }}'
+    data_tests:
+    - relationships:
+        arguments:
+          to: ref('dim_tenant__current')
+          field: tenant_id
+  - name: lease_start_date
+    description: The calendar date associated with lease start.
+  - name: lease_end_date
+    description: The calendar date associated with lease end.
+  - name: move_in_date
+    description: The calendar date associated with move in.
+  - name: move_out_date
+    description: The calendar date associated with move out.
+  - name: signed_date
+    description: The calendar date associated with signed.
+  - name: monthly_rent
+    description: The calculated monthly rent for the represented grain.
+  - name: renewal_of_lease_id
+    description: The business identifier for the related renewal of lease.
+  - name: lease_outcome
+    description: The business lease outcome associated with the represented grain.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+  data_tests:
+  - dbt_utils.mutually_exclusive_ranges:
+      arguments:
+        lower_bound_column: lease_start_date
+        upper_bound_column: lease_end_date
+        partition_by: unit_id
+        gaps: required
+        zero_length_range_allowed: true
+- name: int_payment__conformed
+  description: One row per conformed record. One valid payment per row, including status for
+    posted-payment filtering. Materialized explicitly as a table for downstream reuse.
+  columns:
+  - name: payment_id
+    description: The business identifier for the related payment.
+    data_tests:
+    - not_null
+    - unique
+    - dbt_utils.at_least_one
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+    data_tests:
+    - relationships:
+        arguments:
+          to: ref('dim_property__current')
+          field: property_id
+  - name: tenant_id
+    description: '{{ doc(''tenant_id'') }}'
+    data_tests:
+    - relationships:
+        arguments:
+          to: ref('dim_tenant__current')
+          field: tenant_id
+  - name: payment_date
+    description: The calendar date associated with payment.
+  - name: payment_amount
+    description: The calculated payment amount for the represented grain.
+  - name: payment_status
+    description: The calculated payment status for the represented grain.
+  - name: posted_at
+    description: The timestamp associated with posted.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+- name: int_payment_allocation__conformed
+  description: One row per conformed record. One valid allocation linking a conformed payment
+    to a conformed charge. Materialized explicitly as a table for downstream reuse.
+  columns:
+  - name: payment_allocation_id
+    description: The business identifier for the related payment allocation.
+    data_tests:
+    - not_null
+    - unique
+  - name: payment_id
+    description: The business identifier for the related payment.
+    data_tests:
+    - relationships:
+        arguments:
+          to: ref('int_payment__conformed')
+          field: payment_id
+  - name: charge_id
+    description: The business identifier for the related charge.
+    data_tests:
+    - relationships:
+        arguments:
+          to: ref('int_charge__conformed')
+          field: charge_id
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+  - name: unit_id
+    description: '{{ doc(''unit_id'') }}'
+  - name: lease_id
+    description: '{{ doc(''lease_id'') }}'
+  - name: tenant_id
+    description: '{{ doc(''tenant_id'') }}'
+  - name: allocated_amount
+    description: The calculated allocated amount for the represented grain.
+  - name: allocation_date
+    description: The calendar date associated with allocation.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+- name: int_raw_source__load_status
+  description: One row per analytics source with its staged row count and latest load timestamp.
+    This auditable helper is explicitly materialized as a view in the intermediate schema.
+  columns:
+  - name: affected_table
+    description: The business affected table associated with the represented grain.
+    data_tests:
+    - unique
+    - accepted_values:
+        arguments:
+          values:
+          - properties
+          - units
+          - tenants
+          - leases
+          - charges
+          - payments
+          - payment_allocations
+          - gl_entries
+          - budgets
+          - vendors
+          - work_orders
+          - work_order_status_history
+          - hud_fmr
+  - name: raw_record_count
+    description: The calculated raw record count for the represented grain.
+  - name: raw_loaded_at
+    description: The timestamp associated with raw loaded.
+    data_tests:
+    - not_null
+  data_tests:
+  - dbt_utils.expression_is_true:
+      arguments:
+        expression: raw_loaded_at = {{ analytics_cutoff_timestamp() }}
+- name: int_work_order__conformed
+  description: One row per conformed record. One valid work order with component and total
+    maintenance cost. Materialized explicitly as a table for downstream reuse.
+  columns:
+  - name: work_order_id
+    description: '{{ doc(''work_order_id'') }}'
+    data_tests:
+    - not_null
+    - unique
+    - dbt_utils.at_least_one
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+    data_tests:
+    - relationships:
+        arguments:
+          to: ref('dim_property__current')
+          field: property_id
+  - name: unit_id
+    description: '{{ doc(''unit_id'') }}'
+    data_tests:
+    - relationships:
+        arguments:
+          to: ref('dim_unit__current')
+          field: unit_id
+  - name: vendor_id
+    description: '{{ doc(''vendor_id'') }}'
+  - name: opened_at
+    description: The timestamp associated with opened.
+  - name: first_response_at
+    description: The timestamp associated with first response.
+  - name: closed_at
+    description: The timestamp associated with closed.
+  - name: work_order_status
+    description: The business work order status associated with the represented grain.
+  - name: priority
+    description: '{{ doc(''priority'') }}'
+  - name: category
+    description: '{{ doc(''category'') }}'
+  - name: maintenance_type
+    description: The business maintenance type associated with the represented grain.
+  - name: labor_cost
+    description: The calculated labor cost for the represented grain.
+  - name: material_cost
+    description: The calculated material cost for the represented grain.
+  - name: vendor_cost
+    description: The calculated vendor cost for the represented grain.
+  - name: total_cost
+    description: The calculated total cost for the represented grain.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+- name: int_work_order__performance
+  description: One row per conformed record. Operations-owned work-order performance at work-order
+    grain. Latest status history, including close/reopen/reclose events, is authoritative
+    for resolution time. It is explicitly a view because it is an auditable helper reused
+    by operations reports; no benchmark currently justifies persisting another table copy.
+    Its operations schema is preserved during the folder migration.
+  columns:
+  - name: work_order_id
+    description: '{{ doc(''work_order_id'') }}'
+    data_tests:
+    - not_null
+    - unique
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+  - name: property_name
+    description: '{{ doc(''property_name'') }}'
+  - name: market_id
+    description: '{{ doc(''market_id'') }}'
+  - name: property_class
+    description: '{{ doc(''property_class'') }}'
+  - name: unit_id
+    description: '{{ doc(''unit_id'') }}'
+  - name: unit_number
+    description: The calculated unit number for the represented grain.
+  - name: vendor_id
+    description: '{{ doc(''vendor_id'') }}'
+  - name: vendor_name
+    description: The business vendor name associated with the represented grain.
+  - name: opened_at
+    description: The timestamp associated with opened.
+  - name: first_response_at
+    description: The timestamp associated with first response.
+  - name: valid_closed_at
+    description: The timestamp associated with valid closed.
+  - name: latest_status
+    description: The business latest status associated with the represented grain.
+    data_tests:
+    - accepted_values:
+        arguments:
+          values:
+          - open
+          - opened
+          - in_progress
+          - closed
+          - reopened
+  - name: latest_status_at
+    description: The timestamp associated with latest status.
+  - name: priority
+    description: '{{ doc(''priority'') }}'
+  - name: category
+    description: '{{ doc(''category'') }}'
+  - name: maintenance_type
+    description: The business maintenance type associated with the represented grain.
+  - name: labor_cost
+    description: The calculated labor cost for the represented grain.
+  - name: material_cost
+    description: The calculated material cost for the represented grain.
+  - name: vendor_cost
+    description: The calculated vendor cost for the represented grain.
+  - name: total_cost
+    description: The calculated total cost for the represented grain.
+  - name: reopen_count
+    description: The calculated reopen count for the represented grain.
+  - name: policy_version
+    description: The business policy version associated with the represented grain.
+    data_tests:
+    - not_null
+  - name: response_target_hours
+    description: The calculated response target hours for the represented grain.
+  - name: resolution_target_hours
+    description: The calculated resolution target hours for the represented grain.
+  - name: response_hours
+    description: The calculated response hours for the represented grain.
+  - name: resolution_hours
+    description: The calculated resolution hours for the represented grain.
+  - name: response_sla_met
+    description: The business response sla met associated with the represented grain.
+  - name: resolution_sla_met
+    description: The business resolution sla met associated with the represented grain.
+  - name: is_open_as_of_cutoff
+    description: Whether the record meets the open as of cutoff condition.
+  - name: open_age_hours
+    description: The calculated open age hours for the represented grain.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+  - name: analytics_cutoff_date
+    description: '{{ doc(''analytics_cutoff_date'') }}'
+    data_tests:
+    - not_null
+- name: int_work_order_status__history
+  description: One row per conformed record. Ordered work-order status events, including valid
+    close/reopen histories. Materialized explicitly as a table for downstream reuse and the
+    existing downstream operations models.
+  columns:
+  - name: status_event_id
+    description: The business identifier for the related status event.
+    data_tests:
+    - not_null
+    - unique
+  - name: work_order_id
+    description: '{{ doc(''work_order_id'') }}'
+    data_tests:
+    - relationships:
+        arguments:
+          to: ref('int_work_order__conformed')
+          field: work_order_id
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+  - name: unit_id
+    description: '{{ doc(''unit_id'') }}'
+  - name: work_order_status
+    description: The business work order status associated with the represented grain.
+  - name: event_at
+    description: The timestamp associated with event.
+  - name: event_sequence
+    description: The business event sequence associated with the represented grain.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+  data_tests:
+  - dbt_utils.unique_combination_of_columns:
+      arguments:
+        combination_of_columns:
+        - work_order_id
+        - event_sequence

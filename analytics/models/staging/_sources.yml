@@ -1,0 +1,63 @@
+version: 2
+
+sources:
+  - name: raw
+    description: >-
+      Immutable synthetic operational extracts and versioned public HUD context.
+      These tables intentionally contain planted quality issues; source tests therefore
+      validate required structure without asserting that raw business keys are clean.
+    schema: raw
+    loader: pma.generate
+    loaded_at_field: source_loaded_at
+    tables:
+      - name: properties
+        columns:
+          - name: property_id
+          - name: source_record_id
+      - name: units
+        columns:
+          - name: unit_id
+          - name: source_record_id
+      - name: tenants
+        columns:
+          - name: tenant_id
+          - name: source_record_id
+      - name: leases
+        columns:
+          - name: lease_id
+          - name: source_record_id
+      - name: charges
+        columns:
+          - name: charge_id
+          - name: source_record_id
+      - name: payments
+        columns:
+          - name: payment_id
+          - name: source_record_id
+      - name: payment_allocations
+        columns:
+          - name: payment_allocation_id
+          - name: source_record_id
+      - name: gl_entries
+        columns:
+          - name: gl_entry_id
+          - name: source_record_id
+      - name: budgets
+        columns:
+          - name: budget_id
+          - name: source_record_id
+      - name: vendors
+        columns:
+          - name: vendor_id
+          - name: source_record_id
+      - name: work_orders
+        columns:
+          - name: work_order_id
+          - name: source_record_id
+      - name: work_order_status_history
+        columns:
+          - name: status_event_id
+          - name: source_record_id
+      - name: hud_fmr
+        columns:
+          - name: source_record_id

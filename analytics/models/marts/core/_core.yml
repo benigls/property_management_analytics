@@ -1,0 +1,278 @@
+version: 2
+models:
+- name: dim_date__calendar
+  description: One row per calendar date available to reporting and leasing horizons.
+  columns:
+  - name: date_key
+    description: The business date key associated with the represented grain.
+    data_tests:
+    - not_null
+    - unique
+  - name: calendar_year
+    description: The calculated calendar year for the represented grain.
+  - name: calendar_quarter
+    description: The calculated calendar quarter for the represented grain.
+  - name: month_number
+    description: The calculated month number for the represented grain.
+  - name: month_name
+    description: The calculated month name for the represented grain.
+  - name: month_start_date
+    description: '{{ doc(''month_start_date'') }}'
+  - name: month_end_date
+    description: '{{ doc(''month_end_date'') }}'
+  - name: iso_day_of_week
+    description: The business iso day of week associated with the represented grain.
+  - name: is_weekend
+    description: Whether the record meets the weekend condition.
+  - name: is_analytics_cutoff
+    description: Whether the record meets the analytics cutoff condition.
+- name: dim_hud_fmr__current
+  description: One row per current dimension record. Versioned public HUD Fair Market Rent
+    context. FMR is a policy benchmark, not an asking-rent, market-rent, valuation, or proprietary
+    property-system measure.
+  columns:
+  - name: hud_fmr_key
+    description: The business hud fmr key associated with the represented grain.
+    data_tests:
+    - not_null
+    - unique
+  - name: market_id
+    description: '{{ doc(''market_id'') }}'
+  - name: county_name
+    description: The calculated county name for the represented grain.
+  - name: state_code
+    description: The business state code associated with the represented grain.
+  - name: bedrooms
+    description: The business bedrooms associated with the represented grain.
+  - name: fiscal_year
+    description: The calculated fiscal year for the represented grain.
+  - name: fmr_amount
+    description: The calculated fmr amount for the represented grain.
+  - name: benchmark_label
+    description: The business benchmark label associated with the represented grain.
+  - name: benchmark_source_url
+    description: The business benchmark source url associated with the represented grain.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+- name: dim_property__current
+  description: One row per current dimension record. One valid, conformed record per property;
+    quarantined raw rows are retained only in staging.
+  columns:
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+    data_tests:
+    - not_null
+    - unique
+    - dbt_utils.at_least_one
+  - name: property_name
+    description: '{{ doc(''property_name'') }}'
+  - name: market_id
+    description: '{{ doc(''market_id'') }}'
+  - name: property_class
+    description: '{{ doc(''property_class'') }}'
+  - name: stated_unit_count
+    description: The calculated stated unit count for the represented grain.
+  - name: active_from
+    description: The business active from associated with the represented grain.
+  - name: active_to
+    description: The business active to associated with the represented grain.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+- name: dim_tenant__current
+  description: One row per current dimension record. Synthetic tenant identities used only
+    for demonstration workflows.
+  columns:
+  - name: tenant_id
+    description: '{{ doc(''tenant_id'') }}'
+    data_tests:
+    - not_null
+    - unique
+    - dbt_utils.at_least_one
+  - name: tenant_name
+    description: The business tenant name associated with the represented grain.
+  - name: created_date
+    description: The calendar date associated with created.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+- name: dim_unit__current
+  description: One row per current dimension record. Valid rentable and non-rentable unit
+    records at the source entity grain.
+  columns:
+  - name: unit_id
+    description: '{{ doc(''unit_id'') }}'
+    data_tests:
+    - not_null
+    - unique
+    - dbt_utils.at_least_one
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+    data_tests:
+    - relationships:
+        arguments:
+          to: ref('dim_property__current')
+          field: property_id
+  - name: unit_number
+    description: The calculated unit number for the represented grain.
+  - name: market_rent
+    description: The calculated market rent for the represented grain.
+  - name: is_rentable
+    description: Whether the record meets the rentable condition.
+  - name: active_from
+    description: The business active from associated with the represented grain.
+  - name: active_to
+    description: The business active to associated with the represented grain.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+- name: dim_vendor__current
+  description: One row per current dimension record. Maintenance vendor master after quarantine
+    and temporal validation.
+  columns:
+  - name: vendor_id
+    description: '{{ doc(''vendor_id'') }}'
+    data_tests:
+    - not_null
+    - unique
+  - name: vendor_name
+    description: The business vendor name associated with the represented grain.
+  - name: active_from
+    description: The business active from associated with the represented grain.
+  - name: active_to
+    description: The business active to associated with the represented grain.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+- name: rpt_ar_balance__reconciliation
+  description: One row per reporting record. AR components through 2026-06-30 at property-tenant-lease
+    grain. Opening AR is zero because the generated history is a complete synthetic ledger
+    from portfolio inception.
+  columns:
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+  - name: tenant_id
+    description: '{{ doc(''tenant_id'') }}'
+  - name: lease_id
+    description: '{{ doc(''lease_id'') }}'
+  - name: first_charge_date
+    description: The calendar date associated with first charge.
+  - name: latest_due_date
+    description: The calendar date associated with latest due.
+  - name: charge_count
+    description: The calculated charge count for the represented grain.
+  - name: gross_charge_amount
+    description: The calculated gross charge amount for the represented grain.
+  - name: approved_credit_amount
+    description: The calculated approved credit amount for the represented grain.
+  - name: writeoff_amount
+    description: The calculated writeoff amount for the represented grain.
+  - name: allocated_payment_amount
+    description: The calculated allocated payment amount for the represented grain.
+  - name: ending_ar_balance
+    description: The calculated ending ar balance for the represented grain.
+  - name: reconciliation_status
+    description: The business reconciliation status associated with the represented grain.
+    data_tests:
+    - accepted_values:
+        arguments:
+          values:
+          - reconciled
+  - name: reconciliation_as_of_date
+    description: '{{ doc(''reconciliation_as_of_date'') }}'
+  data_tests:
+  - dbt_utils.unique_combination_of_columns:
+      arguments:
+        combination_of_columns:
+        - property_id
+        - tenant_id
+        - lease_id
+  - dbt_utils.expression_is_true:
+      arguments:
+        expression: ending_ar_balance >= 0
+- name: rpt_gl_balance__reconciliation
+  description: One row per reporting record. Journal-level debit and credit reconciliation;
+    imbalance is a release blocker.
+  columns:
+  - name: journal_id
+    description: '{{ doc(''journal_id'') }}'
+    data_tests:
+    - not_null
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+  - name: posting_date
+    description: The calendar date associated with posting.
+  - name: entry_count
+    description: The calculated entry count for the represented grain.
+  - name: total_debit_amount
+    description: The calculated total debit amount for the represented grain.
+  - name: total_credit_amount
+    description: The calculated total credit amount for the represented grain.
+  - name: balance_difference
+    description: The calculated balance difference for the represented grain.
+  - name: reconciliation_status
+    description: The business reconciliation status associated with the represented grain.
+    data_tests:
+    - accepted_values:
+        arguments:
+          values:
+          - balanced
+  data_tests:
+  - dbt_utils.unique_combination_of_columns:
+      arguments:
+        combination_of_columns:
+        - journal_id
+        - property_id
+  - dbt_utils.expression_is_true:
+      arguments:
+        expression: abs(balance_difference) <= 0.01
+- name: rpt_payment_allocation__reconciliation
+  description: One row per reporting record. Posted payments reconciled to their allocations
+    through the analytics cutoff.
+  columns:
+  - name: payment_id
+    description: The business identifier for the related payment.
+    data_tests:
+    - not_null
+    - unique
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+  - name: tenant_id
+    description: '{{ doc(''tenant_id'') }}'
+  - name: payment_date
+    description: The calendar date associated with payment.
+  - name: payment_amount
+    description: The calculated payment amount for the represented grain.
+  - name: allocated_amount
+    description: The calculated allocated amount for the represented grain.
+  - name: unapplied_amount
+    description: The calculated unapplied amount for the represented grain.
+  - name: reconciliation_status
+    description: The business reconciliation status associated with the represented grain.
+    data_tests:
+    - accepted_values:
+        arguments:
+          values:
+          - reconciled
+  - name: reconciliation_as_of_date
+    description: '{{ doc(''reconciliation_as_of_date'') }}'
+  data_tests:
+  - dbt_utils.expression_is_true:
+      arguments:
+        expression: unapplied_amount >= 0

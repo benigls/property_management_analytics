@@ -1,0 +1,654 @@
+version: 2
+models:
+- name: stg_operation__budget
+  description: One row per raw property-month-account budget record.
+  columns:
+  - name: budget_id
+    description: Stable budget identifier and staging grain.
+    data_tests:
+    - not_null
+    - unique
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+    data_tests:
+    - not_null
+  - name: budget_month
+    description: Budget month normalized to its first day.
+    data_tests:
+    - not_null
+  - name: account_code
+    description: '{{ doc(''account_code'') }}'
+    data_tests:
+    - not_null
+  - name: account_name
+    description: Trimmed budget account name.
+    data_tests:
+    - not_null
+  - name: account_type
+    description: '{{ doc(''account_type'') }}'
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values:
+          - revenue
+          - expense
+  - name: budget_amount
+    description: Planned amount for the property-month-account record.
+    data_tests:
+    - not_null
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+    data_tests:
+    - not_null
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+    data_tests:
+    - not_null
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+    data_tests:
+    - not_null
+- name: stg_operation__charge
+  description: One row per raw charge record, preserving duplicate source rows for downstream
+    financial deduplication.
+  columns:
+  - name: charge_id
+    description: Source charge identifier; duplicate values may be retained in staging.
+    data_tests:
+    - not_null
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+    data_tests:
+    - not_null
+  - name: unit_id
+    description: '{{ doc(''unit_id'') }}'
+  - name: lease_id
+    description: '{{ doc(''lease_id'') }}'
+  - name: tenant_id
+    description: '{{ doc(''tenant_id'') }}'
+  - name: charge_date
+    description: Date the charge was created.
+    data_tests:
+    - not_null
+  - name: due_date
+    description: Date payment is due.
+    data_tests:
+    - not_null
+  - name: charge_type
+    description: Normalized charge classification.
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values:
+          - rent
+          - other_income
+          - writeoff
+  - name: charge_amount
+    description: Gross charge amount.
+    data_tests:
+    - not_null
+  - name: approved_credit_amount
+    description: Credit approved against the gross charge.
+    data_tests:
+    - not_null
+  - name: posted_at
+    description: Timestamp when the charge was posted.
+    data_tests:
+    - not_null
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+    data_tests:
+    - not_null
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+    data_tests:
+    - not_null
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+    data_tests:
+    - not_null
+- name: stg_operation__gl_entry
+  description: One row per raw general-ledger line with normalized account attributes and
+    amounts.
+  columns:
+  - name: gl_entry_id
+    description: Stable general-ledger line identifier and staging grain.
+    data_tests:
+    - not_null
+    - unique
+  - name: journal_id
+    description: '{{ doc(''journal_id'') }}'
+    data_tests:
+    - not_null
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+    data_tests:
+    - not_null
+  - name: posting_date
+    description: Date the ledger line was posted.
+    data_tests:
+    - not_null
+  - name: account_code
+    description: '{{ doc(''account_code'') }}'
+    data_tests:
+    - not_null
+  - name: account_name
+    description: Trimmed general-ledger account name.
+    data_tests:
+    - not_null
+  - name: account_type
+    description: '{{ doc(''account_type'') }}'
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values:
+          - asset
+          - revenue
+          - expense
+  - name: debit_amount
+    description: Debit amount on the ledger line.
+    data_tests:
+    - not_null
+  - name: credit_amount
+    description: Credit amount on the ledger line.
+    data_tests:
+    - not_null
+  - name: entry_description
+    description: Source description of the ledger entry.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+    data_tests:
+    - not_null
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+    data_tests:
+    - not_null
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+    data_tests:
+    - not_null
+- name: stg_operation__hud_fmr
+  description: One row per versioned HUD Fair Market Rent benchmark record with normalized
+    market attributes and provenance.
+  columns:
+  - name: market_id
+    description: '{{ doc(''market_id'') }}'
+    data_tests:
+    - not_null
+  - name: county_name
+    description: County name associated with the benchmark.
+    data_tests:
+    - not_null
+  - name: state_code
+    description: Uppercase state code associated with the benchmark.
+    data_tests:
+    - not_null
+  - name: bedrooms
+    description: Bedroom-count bucket for the benchmark.
+    data_tests:
+    - not_null
+  - name: fiscal_year
+    description: HUD fiscal year of the benchmark.
+    data_tests:
+    - not_null
+  - name: fmr_amount
+    description: Fair Market Rent benchmark amount.
+    data_tests:
+    - not_null
+  - name: benchmark_label
+    description: Human-readable description of the benchmark methodology.
+    data_tests:
+    - not_null
+  - name: benchmark_source_url
+    description: Public URL identifying the benchmark source.
+    data_tests:
+    - not_null
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+    data_tests:
+    - not_null
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+    data_tests:
+    - not_null
+    - unique
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+    data_tests:
+    - not_null
+- name: stg_operation__lease
+  description: One row per raw lease term, with normalized dates, rent, renewal references,
+    and outcomes.
+  columns:
+  - name: lease_id
+    description: '{{ doc(''lease_id'') }}'
+    data_tests:
+    - not_null
+    - unique
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+    data_tests:
+    - not_null
+  - name: unit_id
+    description: '{{ doc(''unit_id'') }}'
+    data_tests:
+    - not_null
+  - name: tenant_id
+    description: '{{ doc(''tenant_id'') }}'
+    data_tests:
+    - not_null
+  - name: lease_start_date
+    description: Contractual lease start date.
+    data_tests:
+    - not_null
+  - name: lease_end_date
+    description: Contractual lease end date.
+    data_tests:
+    - not_null
+  - name: move_in_date
+    description: Tenant move-in date, when provided.
+  - name: move_out_date
+    description: Tenant move-out date, when provided.
+  - name: signed_date
+    description: Date the lease was signed.
+    data_tests:
+    - not_null
+  - name: monthly_rent
+    description: Monthly contractual rent amount.
+    data_tests:
+    - not_null
+  - name: renewal_of_lease_id
+    description: Identifier of the prior lease being renewed, when applicable.
+  - name: lease_outcome
+    description: Normalized outcome of the lease term.
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values:
+          - renewed
+          - turned_over
+          - pending
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+    data_tests:
+    - not_null
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+    data_tests:
+    - not_null
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+    data_tests:
+    - not_null
+- name: stg_operation__payment
+  description: One row per raw payment record with normalized payment status and financial
+    amounts.
+  columns:
+  - name: payment_id
+    description: Stable payment identifier and staging grain.
+    data_tests:
+    - not_null
+    - unique
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+    data_tests:
+    - not_null
+  - name: tenant_id
+    description: '{{ doc(''tenant_id'') }}'
+    data_tests:
+    - not_null
+  - name: payment_date
+    description: Date the payment was received.
+    data_tests:
+    - not_null
+  - name: payment_amount
+    description: Payment amount.
+    data_tests:
+    - not_null
+  - name: payment_status
+    description: Normalized payment posting status.
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values:
+          - posted
+  - name: posted_at
+    description: Timestamp when the payment was posted.
+    data_tests:
+    - not_null
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+    data_tests:
+    - not_null
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+    data_tests:
+    - not_null
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+    data_tests:
+    - not_null
+- name: stg_operation__payment_allocation
+  description: One row per raw payment-to-charge allocation record.
+  columns:
+  - name: payment_allocation_id
+    description: Stable allocation identifier and staging grain.
+    data_tests:
+    - not_null
+    - unique
+  - name: payment_id
+    description: Identifier of the allocated payment.
+    data_tests:
+    - not_null
+  - name: charge_id
+    description: Identifier of the charge receiving the allocation.
+    data_tests:
+    - not_null
+  - name: allocated_amount
+    description: Amount applied from the payment to the charge.
+    data_tests:
+    - not_null
+  - name: allocation_date
+    description: Date the allocation was applied.
+    data_tests:
+    - not_null
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+    data_tests:
+    - not_null
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+    data_tests:
+    - not_null
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+    data_tests:
+    - not_null
+- name: stg_operation__property
+  description: One row per raw property record, with identifiers, normalized asset attributes,
+    dates, and lineage metadata.
+  columns:
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+    data_tests:
+    - not_null
+    - unique
+  - name: property_name
+    description: '{{ doc(''property_name'') }}'
+  - name: market_id
+    description: '{{ doc(''market_id'') }}'
+    data_tests:
+    - not_null
+  - name: property_class
+    description: '{{ doc(''property_class'') }}'
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values:
+          - A
+          - B
+  - name: stated_unit_count
+    description: Unit count stated by the property source.
+    data_tests:
+    - not_null
+  - name: active_from
+    description: Date the property became active.
+    data_tests:
+    - not_null
+  - name: active_to
+    description: Date the property ceased to be active, when applicable.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+    data_tests:
+    - not_null
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+    data_tests:
+    - not_null
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+    data_tests:
+    - not_null
+- name: stg_operation__tenant
+  description: One row per raw tenant identity record with normalized identity attributes
+    and lineage metadata.
+  columns:
+  - name: tenant_id
+    description: '{{ doc(''tenant_id'') }}'
+    data_tests:
+    - not_null
+    - unique
+  - name: tenant_name
+    description: Trimmed tenant display name.
+  - name: created_date
+    description: Date the tenant identity was created.
+    data_tests:
+    - not_null
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+    data_tests:
+    - not_null
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+    data_tests:
+    - not_null
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+    data_tests:
+    - not_null
+- name: stg_operation__unit
+  description: One row per raw unit record, preserving unit identity and normalized operational
+    attributes.
+  columns:
+  - name: unit_id
+    description: '{{ doc(''unit_id'') }}'
+    data_tests:
+    - not_null
+    - unique
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+    data_tests:
+    - not_null
+  - name: unit_number
+    description: Trimmed source unit number.
+  - name: is_rentable
+    description: Whether the unit is available for rentable-inventory analysis.
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values:
+          - true
+  - name: active_from
+    description: Date the unit became active.
+    data_tests:
+    - not_null
+  - name: active_to
+    description: Date the unit ceased to be active, when applicable.
+  - name: market_rent
+    description: Normalized source market-rent amount used for unit validity checks.
+    data_tests:
+    - not_null
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+    data_tests:
+    - not_null
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+    data_tests:
+    - not_null
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+    data_tests:
+    - not_null
+- name: stg_operation__vendor
+  description: One row per raw vendor record with normalized identity and effective dates.
+  columns:
+  - name: vendor_id
+    description: '{{ doc(''vendor_id'') }}'
+    data_tests:
+    - not_null
+    - unique
+  - name: vendor_name
+    description: Trimmed vendor display name.
+    data_tests:
+    - not_null
+  - name: active_from
+    description: Date the vendor became active.
+    data_tests:
+    - not_null
+  - name: active_to
+    description: Date the vendor ceased to be active, when applicable.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+    data_tests:
+    - not_null
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+    data_tests:
+    - not_null
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+    data_tests:
+    - not_null
+- name: stg_operation__work_order
+  description: One row per raw work order with normalized status, priority, category, dates,
+    and costs.
+  columns:
+  - name: work_order_id
+    description: '{{ doc(''work_order_id'') }}'
+    data_tests:
+    - not_null
+    - unique
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+    data_tests:
+    - not_null
+  - name: unit_id
+    description: '{{ doc(''unit_id'') }}'
+    data_tests:
+    - not_null
+  - name: vendor_id
+    description: '{{ doc(''vendor_id'') }}'
+  - name: opened_at
+    description: Timestamp when the work order was opened.
+    data_tests:
+    - not_null
+  - name: first_response_at
+    description: Timestamp of the first vendor response, when supplied.
+  - name: closed_at
+    description: Timestamp when the work order was closed, when supplied.
+  - name: work_order_status
+    description: Normalized current work-order status.
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values:
+          - open
+          - closed
+  - name: priority
+    description: '{{ doc(''priority'') }}'
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values:
+          - low
+          - normal
+          - high
+          - emergency
+  - name: category
+    description: '{{ doc(''category'') }}'
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values:
+          - hvac
+          - plumbing
+          - electrical
+          - general
+          - appliance
+  - name: maintenance_type
+    description: Normalized preventive or reactive maintenance classification.
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values:
+          - reactive
+          - preventive
+  - name: labor_cost
+    description: Labor cost assigned to the work order.
+    data_tests:
+    - not_null
+  - name: material_cost
+    description: Material cost assigned to the work order.
+    data_tests:
+    - not_null
+  - name: vendor_cost
+    description: Vendor cost assigned to the work order.
+    data_tests:
+    - not_null
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+    data_tests:
+    - not_null
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+    data_tests:
+    - not_null
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+    data_tests:
+    - not_null
+- name: stg_operation__work_order_status
+  description: One row per raw work-order status event, preserving event history grain.
+  columns:
+  - name: status_event_id
+    description: Stable status-event identifier and staging grain.
+    data_tests:
+    - not_null
+    - unique
+  - name: work_order_id
+    description: '{{ doc(''work_order_id'') }}'
+    data_tests:
+    - not_null
+  - name: work_order_status
+    description: Normalized status recorded by the event.
+    data_tests:
+    - not_null
+    - accepted_values:
+        arguments:
+          values:
+          - opened
+          - in_progress
+          - closed
+          - reopened
+  - name: event_at
+    description: Timestamp when the status event occurred.
+    data_tests:
+    - not_null
+  - name: event_sequence
+    description: Positive ordering number within a work-order history.
+    data_tests:
+    - not_null
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+    data_tests:
+    - not_null
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+    data_tests:
+    - not_null
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+    data_tests:
+    - not_null

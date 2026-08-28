@@ -1,0 +1,56 @@
+version: 2
+
+exposures:
+  - name: financial_performance_application
+    label: Financial Performance and Asset Health
+    type: application
+    maturity: high
+    description: Streamlit workflow for financial performance, drivers, and review actions.
+    depends_on:
+      - ref('rpt_financial_property__monthly')
+      - ref('rpt_financial_expense__drivers')
+      - ref('rpt_financial_collections__monthly')
+      - ref('rpt_financial_peer__performance')
+      - ref('rpt_financial_portfolio__contribution')
+      - ref('rpt_financial_action__queue')
+      - ref('rpt_financial_source__entries')
+      - ref('rpt_financial_trust__status')
+    owner:
+      name: Portfolio Analytics
+      email: analytics@example.com
+
+  - name: leasing_occupancy_application
+    label: Leasing, Occupancy, and Revenue Risk
+    type: application
+    maturity: high
+    description: Streamlit workflow for lease events, occupancy, revenue risk, and actions.
+    depends_on:
+      - ref('rpt_leasing_property__monthly_occupancy')
+      - ref('rpt_leasing_renewal__turnover')
+      - ref('rpt_leasing_vacancy__episode')
+      - ref('rpt_leasing_expiration__exposure')
+      - ref('rpt_leasing_occupancy__scenario')
+      - ref('rpt_leasing_delinquency__current')
+      - ref('rpt_leasing_action__queue')
+      - ref('rpt_leasing_trust__status')
+    owner:
+      name: Portfolio Analytics
+      email: analytics@example.com
+
+  - name: property_operations_application
+    label: Property Operations and Maintenance
+    type: application
+    maturity: high
+    description: Streamlit workflow for workload, service, recurring issues, and vendors.
+    depends_on:
+      - ref('rpt_operations_property__monthly')
+      - ref('rpt_operations_backlog__monthly')
+      - ref('rpt_operations_action__queue')
+      - ref('rpt_operations_category__monthly')
+      - ref('rpt_operations_cost__drivers_monthly')
+      - ref('rpt_operations_issue__recurring')
+      - ref('rpt_operations_vendor__scorecard')
+    owner:
+      name: Portfolio Analytics
+      email: analytics@example.com
+

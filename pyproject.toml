@@ -1,0 +1,43 @@
+[project]
+name = "property-management-analytics"
+version = "0.1.0"
+description = "PRD-aligned multifamily portfolio analytics data product"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "dbt-duckdb>=1.9,<2",
+  "duckdb>=1.3,<2",
+  "pandas>=2.2,<3",
+  "plotly>=6,<7",
+  "streamlit>=1.49,<2",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8,<10",
+  "ruff>=0.12,<1",
+  "sqlfluff>=3.4,<4",
+  "sqlfluff-templater-dbt>=3.4,<4",
+]
+
+[project.scripts]
+pma-generate = "pma.generate:main"
+pma-validate-determinism = "pma.determinism:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pma"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

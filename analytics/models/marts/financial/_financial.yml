@@ -1,0 +1,444 @@
+version: 2
+models:
+- name: rpt_financial_action__queue
+  description: One row per reporting record. Current property financial review queue using
+    transparent budget, trend, collection, and valid-peer components; the score is prioritization,
+    not causality.
+  columns:
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+    data_tests:
+    - unique
+  - name: property_name
+    description: '{{ doc(''property_name'') }}'
+  - name: market_id
+    description: '{{ doc(''market_id'') }}'
+  - name: property_class
+    description: '{{ doc(''property_class'') }}'
+  - name: performance_month
+    description: '{{ doc(''performance_month'') }}'
+  - name: noi
+    description: The calculated noi for the represented grain.
+  - name: budget_noi
+    description: The calculated budget noi for the represented grain.
+  - name: noi_favorable_variance
+    description: The calculated noi favorable variance for the represented grain.
+  - name: noi_year_over_year_change
+    description: The calculated noi year over year change for the represented grain.
+  - name: prior_year_noi
+    description: The calculated prior year noi for the represented grain.
+  - name: noi_margin
+    description: The calculated noi margin for the represented grain.
+  - name: collection_rate
+    description: The calculated collection rate for the represented grain.
+  - name: outstanding_charge_balance
+    description: The calculated outstanding charge balance for the represented grain.
+  - name: noi_per_unit
+    description: The calculated noi per unit for the represented grain.
+  - name: peer_average_noi_per_unit
+    description: The calculated peer average noi per unit for the represented grain.
+  - name: noi_per_unit_vs_peer
+    description: The calculated noi per unit vs peer for the represented grain.
+  - name: noi_portfolio_contribution
+    description: The calculated noi portfolio contribution for the represented grain.
+  - name: unfavorable_variance_contribution
+    description: The calculated unfavorable variance contribution for the represented grain.
+  - name: adverse_trend_scope
+    description: The business adverse trend scope associated with the represented grain.
+  - name: budget_gap_component
+    description: The business budget gap component associated with the represented grain.
+  - name: trend_component
+    description: The business trend component associated with the represented grain.
+  - name: collection_component
+    description: The business collection component associated with the represented grain.
+  - name: peer_component
+    description: The business peer component associated with the represented grain.
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+  - name: review_score
+    description: The business review score associated with the represented grain.
+  - name: review_rank
+    description: The calculated review rank for the represented grain.
+    data_tests:
+    - not_null
+    - unique
+  - name: review_priority
+    description: The business review priority associated with the represented grain.
+    data_tests:
+    - accepted_values:
+        arguments:
+          values:
+          - high
+          - medium
+          - monitor
+  - name: recommended_action
+    description: The business recommended action associated with the represented grain.
+    data_tests:
+    - not_null
+- name: rpt_financial_collections__monthly
+  description: One row per reporting record. Property-level collection performance by charge
+    due month using allocations through the immutable analytics cutoff; tenant-level action
+    remains leasing-owned.
+  columns:
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+  - name: property_name
+    description: '{{ doc(''property_name'') }}'
+  - name: market_id
+    description: '{{ doc(''market_id'') }}'
+  - name: property_class
+    description: '{{ doc(''property_class'') }}'
+  - name: performance_month
+    description: '{{ doc(''performance_month'') }}'
+  - name: charge_count
+    description: The calculated charge count for the represented grain.
+  - name: allocation_count
+    description: The calculated allocation count for the represented grain.
+  - name: charges_net_of_credits
+    description: The business charges net of credits associated with the represented grain.
+    data_tests:
+    - not_null
+  - name: approved_credit_amount
+    description: The calculated approved credit amount for the represented grain.
+  - name: allocated_payment_amount
+    description: The calculated allocated payment amount for the represented grain.
+  - name: outstanding_charge_balance
+    description: The calculated outstanding charge balance for the represented grain.
+  - name: collection_rate
+    description: The calculated collection rate for the represented grain.
+    data_tests:
+    - not_null
+  - name: allocation_cutoff_date
+    description: The calendar date associated with allocation cutoff.
+    data_tests:
+    - not_null
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+  data_tests:
+  - dbt_utils.unique_combination_of_columns:
+      arguments:
+        combination_of_columns:
+        - property_id
+        - performance_month
+  - dbt_utils.accepted_range:
+      arguments:
+        column_name: collection_rate
+        min_value: 0
+        max_value: 1
+  - dbt_utils.expression_is_true:
+      arguments:
+        expression: allocated_payment_amount <= charges_net_of_credits + 0.01
+- name: rpt_financial_expense__drivers
+  description: One row per reporting record. One property-month-expense account with actual,
+    budget, and comparable change.
+  columns:
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+    data_tests:
+    - not_null
+  - name: performance_month
+    description: '{{ doc(''performance_month'') }}'
+    data_tests:
+    - not_null
+  - name: account_code
+    description: '{{ doc(''account_code'') }}'
+  - name: account_name
+    description: The calculated account name for the represented grain.
+  - name: actual_expense
+    description: The calculated actual expense for the represented grain.
+    data_tests:
+    - not_null
+  - name: budget_expense
+    description: The calculated budget expense for the represented grain.
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+  - name: property_name
+    description: '{{ doc(''property_name'') }}'
+  - name: market_id
+    description: '{{ doc(''market_id'') }}'
+  - name: property_class
+    description: '{{ doc(''property_class'') }}'
+  - name: prior_year_actual_expense
+    description: The calculated prior year actual expense for the represented grain.
+  - name: expense_favorable_variance
+    description: The calculated expense favorable variance for the represented grain.
+    data_tests:
+    - not_null
+  - name: expense_year_over_year_change
+    description: The calculated expense year over year change for the represented grain.
+  - name: expense_year_over_year_change_rate
+    description: The calculated expense year over year change rate for the represented grain.
+  data_tests:
+  - dbt_utils.unique_combination_of_columns:
+      arguments:
+        combination_of_columns:
+        - property_id
+        - performance_month
+        - account_code
+  - dbt_utils.expression_is_true:
+      arguments:
+        expression: abs(expense_favorable_variance - (budget_expense - actual_expense)) <=
+          0.01
+- name: rpt_financial_peer__performance
+  description: One row per reporting record. Per-unit property performance compared only with
+    other properties in the same market and class when the full cohort contains at least three
+    properties.
+  columns:
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+  - name: property_name
+    description: '{{ doc(''property_name'') }}'
+  - name: performance_month
+    description: '{{ doc(''performance_month'') }}'
+  - name: market_id
+    description: '{{ doc(''market_id'') }}'
+  - name: property_class
+    description: '{{ doc(''property_class'') }}'
+  - name: stated_unit_count
+    description: The calculated stated unit count for the represented grain.
+  - name: cohort_size
+    description: The business cohort size associated with the represented grain.
+    data_tests:
+    - not_null
+  - name: peer_property_count
+    description: The calculated peer property count for the represented grain.
+  - name: noi_per_unit
+    description: The calculated noi per unit for the represented grain.
+    data_tests:
+    - not_null
+  - name: peer_average_noi_per_unit
+    description: The calculated peer average noi per unit for the represented grain.
+    data_tests:
+    - not_null
+  - name: noi_per_unit_vs_peer
+    description: The calculated noi per unit vs peer for the represented grain.
+  - name: revenue_per_unit
+    description: The calculated revenue per unit for the represented grain.
+  - name: peer_average_revenue_per_unit
+    description: The calculated peer average revenue per unit for the represented grain.
+  - name: revenue_per_unit_vs_peer
+    description: The calculated revenue per unit vs peer for the represented grain.
+  - name: cohort_noi_rank
+    description: The calculated cohort noi rank for the represented grain.
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+  data_tests:
+  - dbt_utils.unique_combination_of_columns:
+      arguments:
+        combination_of_columns:
+        - property_id
+        - performance_month
+  - dbt_utils.expression_is_true:
+      arguments:
+        expression: cohort_size >= 3 and peer_property_count = cohort_size - 1 and peer_property_count
+          >= 2
+- name: rpt_financial_portfolio__contribution
+  description: One row per reporting record. Property contribution to actual portfolio NOI
+    and unfavorable NOI variance.
+  columns:
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+  - name: property_name
+    description: '{{ doc(''property_name'') }}'
+  - name: market_id
+    description: '{{ doc(''market_id'') }}'
+  - name: property_class
+    description: '{{ doc(''property_class'') }}'
+  - name: performance_month
+    description: '{{ doc(''performance_month'') }}'
+  - name: noi
+    description: The calculated noi for the represented grain.
+  - name: noi_favorable_variance
+    description: The calculated noi favorable variance for the represented grain.
+  - name: noi_year_over_year_change
+    description: The calculated noi year over year change for the represented grain.
+  - name: portfolio_noi
+    description: The calculated portfolio noi for the represented grain.
+  - name: portfolio_noi_favorable_variance
+    description: The calculated portfolio noi favorable variance for the represented grain.
+  - name: portfolio_noi_year_over_year_change
+    description: The calculated portfolio noi year over year change for the represented grain.
+  - name: portfolio_property_count
+    description: The calculated portfolio property count for the represented grain.
+  - name: properties_with_noi_decline
+    description: The calculated properties with noi decline for the represented grain.
+  - name: noi_portfolio_contribution
+    description: The calculated noi portfolio contribution for the represented grain.
+    data_tests:
+    - not_null
+  - name: unfavorable_variance_contribution
+    description: The calculated unfavorable variance contribution for the represented grain.
+  - name: adverse_trend_scope
+    description: The business adverse trend scope associated with the represented grain.
+    data_tests:
+    - accepted_values:
+        arguments:
+          values:
+          - portfolio_wide
+          - isolated_or_limited
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+  data_tests:
+  - dbt_utils.unique_combination_of_columns:
+      arguments:
+        combination_of_columns:
+        - property_id
+        - performance_month
+
+- name: rpt_financial_property__monthly
+  description: One row per reporting record. One property-month of operating revenue, operating
+    expense, NOI, margin, budget, favorable variances, and non-causal historical comparisons.
+  columns:
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+    data_tests:
+    - not_null
+    - relationships:
+        arguments:
+          to: ref('dim_property__current')
+          field: property_id
+  - name: property_name
+    description: '{{ doc(''property_name'') }}'
+  - name: market_id
+    description: '{{ doc(''market_id'') }}'
+  - name: property_class
+    description: '{{ doc(''property_class'') }}'
+  - name: stated_unit_count
+    description: The calculated stated unit count for the represented grain.
+  - name: performance_month
+    description: '{{ doc(''performance_month'') }}'
+  - name: operating_revenue
+    description: The calculated operating revenue for the represented grain.
+    data_tests:
+    - not_null
+  - name: operating_expense
+    description: The calculated operating expense for the represented grain.
+    data_tests:
+    - not_null
+  - name: noi
+    description: The calculated noi for the represented grain.
+    data_tests:
+    - not_null
+  - name: noi_margin
+    description: The calculated noi margin for the represented grain.
+  - name: budget_revenue
+    description: The calculated budget revenue for the represented grain.
+  - name: budget_expense
+    description: The calculated budget expense for the represented grain.
+  - name: budget_noi
+    description: The calculated budget noi for the represented grain.
+    data_tests:
+    - not_null
+  - name: revenue_favorable_variance
+    description: The calculated revenue favorable variance for the represented grain.
+  - name: expense_favorable_variance
+    description: The calculated expense favorable variance for the represented grain.
+  - name: noi_favorable_variance
+    description: The calculated noi favorable variance for the represented grain.
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+  - name: prior_month_noi
+    description: The calculated prior month noi for the represented grain.
+  - name: prior_year_noi
+    description: The calculated prior year noi for the represented grain.
+  - name: prior_year_operating_revenue
+    description: The calculated prior year operating revenue for the represented grain.
+  - name: prior_year_operating_expense
+    description: The calculated prior year operating expense for the represented grain.
+  - name: noi_month_over_month_change
+    description: The calculated noi month over month change for the represented grain.
+  - name: noi_year_over_year_change
+    description: The calculated noi year over year change for the represented grain.
+  - name: revenue_year_over_year_change
+    description: The calculated revenue year over year change for the represented grain.
+  - name: expense_year_over_year_change
+    description: The calculated expense year over year change for the represented grain.
+  data_tests:
+  - dbt_utils.unique_combination_of_columns:
+      arguments:
+        combination_of_columns:
+        - property_id
+        - performance_month
+  - dbt_utils.expression_is_true:
+      arguments:
+        expression: abs(noi - (operating_revenue - operating_expense)) <= 0.01
+  - dbt_utils.expression_is_true:
+      arguments:
+        expression: abs(noi_favorable_variance - (revenue_favorable_variance + expense_favorable_variance))
+          <= 0.01
+- name: rpt_financial_source__entries
+  description: One row per reporting record. Source drill-through for conformed revenue and
+    expense GL entries.
+  columns:
+  - name: gl_entry_id
+    description: The business identifier for the related gl entry.
+    data_tests:
+    - not_null
+    - unique
+  - name: journal_id
+    description: '{{ doc(''journal_id'') }}'
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+    data_tests:
+    - not_null
+  - name: property_name
+    description: '{{ doc(''property_name'') }}'
+  - name: posting_date
+    description: The calendar date associated with posting.
+  - name: performance_month
+    description: '{{ doc(''performance_month'') }}'
+  - name: account_code
+    description: '{{ doc(''account_code'') }}'
+  - name: account_name
+    description: The calculated account name for the represented grain.
+  - name: account_type
+    description: '{{ doc(''account_type'') }}'
+    data_tests:
+    - accepted_values:
+        arguments:
+          values:
+          - revenue
+          - expense
+  - name: actual_amount
+    description: The calculated actual amount for the represented grain.
+  - name: entry_description
+    description: The business entry description associated with the represented grain.
+  - name: source_system
+    description: '{{ doc(''source_system'') }}'
+  - name: source_record_id
+    description: '{{ doc(''source_record_id'') }}'
+  - name: source_loaded_at
+    description: '{{ doc(''source_loaded_at'') }}'
+- name: rpt_financial_trust__status
+  description: One row per reporting record. Financial domain reconciliation and metric-bound
+    checks rendered in-app.
+  columns:
+  - name: check_id
+    description: '{{ doc(''check_id'') }}'
+    data_tests:
+    - not_null
+    - unique
+  - name: checked_row_count
+    description: The calculated checked row count for the represented grain.
+  - name: exception_count
+    description: The calculated exception count for the represented grain.
+  - name: difference_amount
+    description: The calculated difference amount for the represented grain.
+  - name: check_status
+    description: '{{ doc(''check_status'') }}'
+    data_tests:
+    - accepted_values:
+        arguments:
+          values:
+          - pass
+          - fail
+  - name: check_detail
+    description: The business check detail associated with the represented grain.
+  - name: reconciliation_as_of_date
+    description: '{{ doc(''reconciliation_as_of_date'') }}'
+    data_tests:
+    - not_null
+  data_tests:
+  - dbt_utils.expression_is_true:
+      arguments:
+        expression: exception_count = 0 and abs(difference_amount) <= 0.01

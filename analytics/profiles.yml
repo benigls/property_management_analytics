@@ -1,0 +1,17 @@
+property_management_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      # dbt is invoked from the repository root by Makefile and CI.
+      path: "{{ env_var('PMA_WAREHOUSE_PATH', 'data/warehouse.duckdb') }}"
+      threads: 4
+    ci:
+      type: duckdb
+      path: "{{ env_var('PMA_WAREHOUSE_PATH', 'data/warehouse.duckdb') }}"
+      threads: 4
+    prod:
+      type: duckdb
+      # The checked-in artifact consumed by the hosted applications.
+      path: "{{ env_var('PMA_WAREHOUSE_PATH', 'data/warehouse.duckdb') }}"
+      threads: 4

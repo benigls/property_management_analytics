@@ -1,0 +1,449 @@
+version: 2
+models:
+- name: dim_operations_sla__policy
+  description: One row per current dimension record. Versioned synthetic service policy used
+    for demonstration; thresholds are not represented as Yardi configuration, contractual
+    commitments, or industry standards.
+  columns:
+  - name: policy_version
+    description: The business policy version associated with the represented grain.
+    data_tests:
+    - not_null
+  - name: priority
+    description: '{{ doc(''priority'') }}'
+    data_tests:
+    - not_null
+    - unique
+    - accepted_values:
+        arguments:
+          values:
+          - low
+          - normal
+          - high
+          - emergency
+  - name: response_target_hours
+    description: The calculated response target hours for the represented grain.
+    data_tests:
+    - not_null
+  - name: resolution_target_hours
+    description: The calculated resolution target hours for the represented grain.
+    data_tests:
+    - not_null
+  - name: effective_from
+    description: The business effective from associated with the represented grain.
+    data_tests:
+    - not_null
+  - name: effective_to
+    description: The business effective to associated with the represented grain.
+  data_tests:
+  - dbt_utils.expression_is_true:
+      arguments:
+        expression: response_target_hours > 0 and resolution_target_hours > response_target_hours
+- name: rpt_operations_action__queue
+  description: One row per reporting record. Open work as of 2026-06-30 prioritized for service-level
+    escalation or monitoring.
+  columns:
+  - name: work_order_id
+    description: '{{ doc(''work_order_id'') }}'
+    data_tests:
+    - not_null
+    - unique
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+  - name: property_name
+    description: '{{ doc(''property_name'') }}'
+  - name: unit_id
+    description: '{{ doc(''unit_id'') }}'
+  - name: unit_number
+    description: The calculated unit number for the represented grain.
+  - name: priority
+    description: '{{ doc(''priority'') }}'
+  - name: category
+    description: '{{ doc(''category'') }}'
+  - name: maintenance_type
+    description: The business maintenance type associated with the represented grain.
+  - name: opened_at
+    description: The timestamp associated with opened.
+  - name: latest_status
+    description: The business latest status associated with the represented grain.
+  - name: latest_status_at
+    description: The timestamp associated with latest status.
+  - name: open_age_hours
+    description: The calculated open age hours for the represented grain.
+  - name: open_age_days
+    description: The calculated open age days for the represented grain.
+  - name: response_target_hours
+    description: The calculated response target hours for the represented grain.
+  - name: resolution_target_hours
+    description: The calculated resolution target hours for the represented grain.
+  - name: response_sla_met
+    description: The business response sla met associated with the represented grain.
+  - name: resolution_sla_met
+    description: The business resolution sla met associated with the represented grain.
+  - name: total_cost
+    description: The calculated total cost for the represented grain.
+  - name: priority_weight
+    description: The business priority weight associated with the represented grain.
+  - name: recommended_action
+    description: The business recommended action associated with the represented grain.
+    data_tests:
+    - accepted_values:
+        arguments:
+          values:
+          - Escalate breached resolution SLA
+          - Review delayed first response
+          - Monitor open work
+  - name: policy_version
+    description: The business policy version associated with the represented grain.
+  - name: analytics_cutoff_date
+    description: '{{ doc(''analytics_cutoff_date'') }}'
+- name: rpt_operations_backlog__monthly
+  description: One row per reporting record. Month-end open work-order backlog reconstructed
+    from status history.
+  columns:
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+    data_tests:
+    - not_null
+  - name: property_name
+    description: '{{ doc(''property_name'') }}'
+  - name: market_id
+    description: '{{ doc(''market_id'') }}'
+  - name: property_class
+    description: '{{ doc(''property_class'') }}'
+  - name: month_start_date
+    description: '{{ doc(''month_start_date'') }}'
+    data_tests:
+    - not_null
+  - name: month_end_date
+    description: '{{ doc(''month_end_date'') }}'
+  - name: snapshot_at
+    description: The timestamp associated with snapshot.
+  - name: backlog_count
+    description: The calculated backlog count for the represented grain.
+    data_tests:
+    - not_null
+  - name: high_priority_backlog_count
+    description: The calculated high priority backlog count for the represented grain.
+  - name: breached_backlog_count
+    description: The calculated breached backlog count for the represented grain.
+  - name: average_backlog_age_days
+    description: The calculated average backlog age days for the represented grain.
+  - name: oldest_backlog_age_days
+    description: The calculated oldest backlog age days for the represented grain.
+  - name: backlog_month_over_month_change
+    description: The calculated backlog month over month change for the represented grain.
+  data_tests:
+  - dbt_utils.unique_combination_of_columns:
+      arguments:
+        combination_of_columns:
+        - property_id
+        - month_start_date
+
+- name: rpt_operations_category__monthly
+  description: One row per reporting record. Property-month-category workload and cost trends
+    including zero-activity months.
+  columns:
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+    data_tests:
+    - not_null
+  - name: property_name
+    description: '{{ doc(''property_name'') }}'
+  - name: market_id
+    description: '{{ doc(''market_id'') }}'
+  - name: property_class
+    description: '{{ doc(''property_class'') }}'
+  - name: month_start_date
+    description: '{{ doc(''month_start_date'') }}'
+    data_tests:
+    - not_null
+  - name: month_end_date
+    description: '{{ doc(''month_end_date'') }}'
+  - name: active_rentable_units
+    description: '{{ doc(''active_rentable_units'') }}'
+  - name: category
+    description: '{{ doc(''category'') }}'
+    data_tests:
+    - not_null
+  - name: work_order_count
+    description: The calculated work order count for the represented grain.
+  - name: total_cost
+    description: The calculated total cost for the represented grain.
+  - name: average_resolution_hours
+    description: The calculated average resolution hours for the represented grain.
+  - name: work_orders_per_100_units
+    description: The business work orders per 100 units associated with the represented grain.
+  - name: work_order_month_over_month_change
+    description: The calculated work order month over month change for the represented grain.
+  - name: cost_month_over_month_change
+    description: The calculated cost month over month change for the represented grain.
+  data_tests:
+  - dbt_utils.unique_combination_of_columns:
+      arguments:
+        combination_of_columns:
+        - property_id
+        - month_start_date
+        - category
+- name: rpt_operations_cost__drivers_monthly
+  description: One row per reporting record. Exact month-over-month arithmetic bridge separating
+    volume, priority-severity mix, and within-priority cost-per-order effects. It is contribution
+    analysis, not causality.
+  columns:
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+    data_tests:
+    - not_null
+  - name: month_start_date
+    description: '{{ doc(''month_start_date'') }}'
+    data_tests:
+    - not_null
+  - name: property_name
+    description: '{{ doc(''property_name'') }}'
+  - name: market_id
+    description: '{{ doc(''market_id'') }}'
+  - name: property_class
+    description: '{{ doc(''property_class'') }}'
+  - name: active_rentable_units
+    description: '{{ doc(''active_rentable_units'') }}'
+  - name: work_order_count
+    description: The calculated work order count for the represented grain.
+  - name: high_priority_count
+    description: The calculated high priority count for the represented grain.
+  - name: total_maintenance_cost
+    description: The calculated total maintenance cost for the represented grain.
+  - name: cost_per_work_order
+    description: The calculated cost per work order for the represented grain.
+  - name: cost_per_active_unit
+    description: The calculated cost per active unit for the represented grain.
+  - name: prior_work_order_count
+    description: The calculated prior work order count for the represented grain.
+  - name: prior_total_maintenance_cost
+    description: The calculated prior total maintenance cost for the represented grain.
+  - name: prior_cost_per_work_order
+    description: The calculated prior cost per work order for the represented grain.
+  - name: volume_cost_effect
+    description: The calculated volume cost effect for the represented grain.
+  - name: severity_mix_cost_effect
+    description: The calculated severity mix cost effect for the represented grain.
+  - name: unit_cost_effect
+    description: The calculated unit cost effect for the represented grain.
+  - name: total_cost_change
+    description: The calculated total cost change for the represented grain.
+  - name: decomposition_residual
+    description: The business decomposition residual associated with the represented grain.
+  - name: primary_cost_driver
+    description: The calculated primary cost driver for the represented grain.
+    data_tests:
+    - accepted_values:
+        arguments:
+          values:
+          - no_prior_period
+          - volume
+          - severity_mix
+          - cost_per_order
+  data_tests:
+  - dbt_utils.unique_combination_of_columns:
+      arguments:
+        combination_of_columns:
+        - property_id
+        - month_start_date
+  - dbt_utils.expression_is_true:
+      arguments:
+        expression: abs(decomposition_residual) <= 0.01
+      config:
+        where: prior_total_maintenance_cost is not null
+- name: rpt_operations_issue__recurring
+  description: One row per reporting record. Non-preventive unit/category work repeated within
+    90 days of a prior close event. This is evidence for investigation, not evidence that
+    the prior repair caused recurrence.
+  columns:
+  - name: work_order_id
+    description: '{{ doc(''work_order_id'') }}'
+    data_tests:
+    - not_null
+    - unique
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+  - name: property_name
+    description: '{{ doc(''property_name'') }}'
+  - name: unit_id
+    description: '{{ doc(''unit_id'') }}'
+  - name: unit_number
+    description: The calculated unit number for the represented grain.
+  - name: category
+    description: '{{ doc(''category'') }}'
+  - name: priority
+    description: '{{ doc(''priority'') }}'
+  - name: opened_at
+    description: The timestamp associated with opened.
+  - name: valid_closed_at
+    description: The timestamp associated with valid closed.
+  - name: total_cost
+    description: The calculated total cost for the represented grain.
+  - name: prior_work_order_id
+    description: The business identifier for the related prior work order.
+    data_tests:
+    - not_null
+  - name: prior_closed_at
+    description: The timestamp associated with prior closed.
+  - name: days_since_prior_close
+    description: The calculated days since prior close for the represented grain.
+    data_tests:
+    - not_null
+  - name: recurring_event_count
+    description: The calculated recurring event count for the represented grain.
+  - name: recurring_event_cost
+    description: The calculated recurring event cost for the represented grain.
+  data_tests:
+  - dbt_utils.accepted_range:
+      arguments:
+        column_name: days_since_prior_close
+        min_value: 0
+        max_value: 90
+  - dbt_utils.expression_is_true:
+      arguments:
+        expression: work_order_id <> prior_work_order_id
+- name: rpt_operations_property__monthly
+  description: One row per reporting record. Monthly property workload, service, maintenance
+    mix, and cost measures normalized by active rentable units at period end.
+  columns:
+  - name: property_id
+    description: '{{ doc(''property_id'') }}'
+    data_tests:
+    - not_null
+  - name: property_name
+    description: '{{ doc(''property_name'') }}'
+  - name: market_id
+    description: '{{ doc(''market_id'') }}'
+  - name: property_class
+    description: '{{ doc(''property_class'') }}'
+  - name: month_start_date
+    description: '{{ doc(''month_start_date'') }}'
+    data_tests:
+    - not_null
+  - name: month_end_date
+    description: '{{ doc(''month_end_date'') }}'
+  - name: active_rentable_units
+    description: '{{ doc(''active_rentable_units'') }}'
+    data_tests:
+    - not_null
+  - name: work_order_count
+    description: The calculated work order count for the represented grain.
+    data_tests:
+    - not_null
+  - name: high_priority_count
+    description: The calculated high priority count for the represented grain.
+  - name: reactive_count
+    description: The calculated reactive count for the represented grain.
+  - name: preventive_count
+    description: The calculated preventive count for the represented grain.
+  - name: reopened_count
+    description: The calculated reopened count for the represented grain.
+  - name: average_response_hours
+    description: The calculated average response hours for the represented grain.
+  - name: average_resolution_hours
+    description: The calculated average resolution hours for the represented grain.
+  - name: response_sla_met_count
+    description: The calculated response sla met count for the represented grain.
+  - name: response_sla_eligible_count
+    description: The calculated response sla eligible count for the represented grain.
+  - name: resolution_sla_met_count
+    description: The calculated resolution sla met count for the represented grain.
+  - name: resolution_sla_eligible_count
+    description: The calculated resolution sla eligible count for the represented grain.
+  - name: labor_cost
+    description: The calculated labor cost for the represented grain.
+  - name: material_cost
+    description: The calculated material cost for the represented grain.
+  - name: vendor_cost
+    description: The calculated vendor cost for the represented grain.
+  - name: total_maintenance_cost
+    description: The calculated total maintenance cost for the represented grain.
+  - name: work_orders_per_100_units
+    description: The business work orders per 100 units associated with the represented grain.
+  - name: reactive_work_order_pct
+    description: The calculated reactive work order pct for the represented grain.
+  - name: response_sla_compliance_pct
+    description: The calculated response sla compliance pct for the represented grain.
+  - name: resolution_sla_compliance_pct
+    description: The calculated resolution sla compliance pct for the represented grain.
+  - name: cost_per_work_order
+    description: The calculated cost per work order for the represented grain.
+  - name: cost_per_active_unit
+    description: The calculated cost per active unit for the represented grain.
+  data_tests:
+  - dbt_utils.unique_combination_of_columns:
+      arguments:
+        combination_of_columns:
+        - property_id
+        - month_start_date
+  - dbt_utils.expression_is_true:
+      arguments:
+        expression: active_rentable_units > 0 and abs(work_orders_per_100_units - 100.0 *
+          work_order_count / active_rentable_units) <= 0.000001
+- name: rpt_operations_vendor__scorecard
+  description: One row per reporting record. Vendor/category/priority performance. Comparisons
+    publish only when the vendor has at least 20 completed comparable orders and at least
+    two eligible vendors exist.
+  columns:
+  - name: vendor_id
+    description: '{{ doc(''vendor_id'') }}'
+    data_tests:
+    - not_null
+  - name: vendor_name
+    description: The business vendor name associated with the represented grain.
+  - name: category
+    description: '{{ doc(''category'') }}'
+    data_tests:
+    - not_null
+  - name: priority
+    description: '{{ doc(''priority'') }}'
+    data_tests:
+    - not_null
+  - name: comparable_completed_count
+    description: The calculated comparable completed count for the represented grain.
+  - name: average_resolution_hours
+    description: The calculated average resolution hours for the represented grain.
+  - name: average_cost_per_order
+    description: The calculated average cost per order for the represented grain.
+  - name: resolution_sla_compliance_pct
+    description: The calculated resolution sla compliance pct for the represented grain.
+  - name: total_cost
+    description: The calculated total cost for the represented grain.
+  - name: eligible_vendor_count
+    description: The calculated eligible vendor count for the represented grain.
+  - name: peer_average_cost_per_order
+    description: The calculated peer average cost per order for the represented grain.
+  - name: peer_average_resolution_hours
+    description: The calculated peer average resolution hours for the represented grain.
+  - name: peer_resolution_sla_compliance_pct
+    description: The calculated peer resolution sla compliance pct for the represented grain.
+  - name: cost_per_order_delta
+    description: The calculated cost per order delta for the represented grain.
+  - name: resolution_hours_delta
+    description: The calculated resolution hours delta for the represented grain.
+  - name: sla_compliance_percentage_point_delta
+    description: The business sla compliance percentage point delta associated with the represented
+      grain.
+  - name: comparison_status
+    description: The business comparison status associated with the represented grain.
+    data_tests:
+    - accepted_values:
+        arguments:
+          values:
+          - comparable
+          - insufficient_vendor_sample
+          - insufficient_peer_vendors
+  data_tests:
+  - dbt_utils.unique_combination_of_columns:
+      arguments:
+        combination_of_columns:
+        - vendor_id
+        - category
+        - priority
+  - dbt_utils.expression_is_true:
+      arguments:
+        expression: (comparison_status = 'comparable' and comparable_completed_count >= 20
+          and eligible_vendor_count >= 2) or (comparison_status <> 'comparable' and (cost_per_order_delta
+          is null or comparable_completed_count >= 20))
